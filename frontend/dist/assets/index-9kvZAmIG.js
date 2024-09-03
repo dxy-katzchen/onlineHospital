@@ -1,0 +1,1 @@
+import{b as o}from"./index-DUccw6c8.js";const i=async t=>{const a=new FormData;return a.append("smfile",t),await o.post("/api/v2/upload",a,{headers:{"Content-Type":"multipart/form-data",Authorization:"SBla1ckE7r3c8z0KtSFyrtIiZIRdiSwc"}})};export{i as u};
