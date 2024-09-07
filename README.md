@@ -1,1 +1,200 @@
 # onlineHospital
+
+This is an online hospital management system built with Express, Vue and MySQL.
+
+This project is deployed on AWS, check it out [here](https://onlineHospital.sabinalovecat.com)
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Vue, Element-Plus
+- **Backend**: Express, MySQL
+- **Communication**: WebRTC, PeerJS, websocket.io
+
+## 🏥 Workflow
+
+### 👤 Patients
+
+1. 🏷 **Making an appointment**
+
+   - Select a department
+     - Patient can make appointment for the doctor in the selected department if there is an available slot.
+   - Choose consultation type
+   - Confirm the appointment.
+
+2. 📝 **Consultation**
+
+   - There are two types of consultation:
+     - Text and image based consultation.
+     - Video and audio consultation (based on **peerjs**, which encapsulates **WebRTC**).
+
+3. 📋 **View medical records**
+
+   - After consultation, the doctor will issue a medical record,and the patient can view it in the "Medical Record List" page.
+
+4. 💊 **View Prescription and pay**
+   - After consultation, the doctor issues a prescription, and the patient can view it in the "Prescription List" page.
+   - After paid, the patient is able to download the prescription.
+
+### 👨‍⚕️ Doctors
+
+1. 📅 **Daily Appointment Limit**
+
+   - Each doctor is assigned **15 appointment slots per day**.
+
+2. 🩺 **Consultation Process**
+
+   - The doctor attends to patients in the order of their registration.
+   - Conduct **text or video consultation**.
+
+3. 📝 **Issuing Medical Record**
+
+4. 💊 **Issuing Prescriptions**
+
+### 🧑‍⚕️ Pharmacists(Admin)
+
+They are able to edit drug information.
+
+## 🚶‍♂️ Walkthrough
+
+### 🔐 Login & Register
+
+#### 🔑 Login
+
+User can login using email or phone number(NZ). They are both validated through front-end and back-end.
+![](https://s2.loli.net/2024/09/07/t8eKiDlwJmC1V2H.png)
+
+#### 📝 Register
+
+Patient,doctor and admin have different register form. This is example for doctor register, they should upload their avatar as well.
+![](https://s2.loli.net/2024/09/07/bwR9GIFuz3fc28s.png)
+
+#### 🎨 Switch background
+
+User can switch background by clicking the button in the top left corner.
+![](https://s2.loli.net/2024/09/07/oeLRuSKdcpWr697.png)
+
+#### 🏥 Make appointment
+
+By clicking the `Hospital Lobby`->`Make Appointment` button on the home page, patients can see various departments, and click on the arrow to see the department's available doctors, each doctor have 15 available appointment slots per day.
+
+![](https://s2.loli.net/2024/09/07/761TyCdeUrzNOHh.png)
+
+After clicking `Make Appointment`, patients could briefly describe their condition, and choose consultation type, then submit the appointment request.
+
+![](https://s2.loli.net/2024/09/07/TFPcL7WM6mIB8GY.png)
+
+After submitting the appointment request, the patient will see the appointment details at `About me`->`Appointment Record`. They will also see history appointment details here.
+
+![](https://s2.loli.net/2024/09/07/b8ohNYr2vqRMm7F.png)
+
+By clicking "Details" in the appointment record list, patients can see the consultation details.
+
+![](https://s2.loli.net/2024/09/07/C27RJPx8Qj5ciEW.png)
+
+The appoinement details includes:
+
+- Doctor's name
+- Department
+- Appointment Fees: This is decided by the title of the doctor.
+- Appointment Time
+- Consultation type
+- Status:
+  - awaiting consultation: The patient has made an appointment, waiting for the consultation with the doctor.
+  - awaiting medical record: After the consultation, patient should wait for the doctor to issue a medical record.
+  - awaiting prescription: After doctor issues a medical record, patient should wait for the doctor to issue a prescription.
+  - finished: After the doctor issueing the prescription and patient have paid the fees/ It has pass the appoinement day.
+
+#### 📝 Consultation
+
+There are two types of consultation:
+
+- Text and image based consultation.
+- Video and audio consultation (based on **peerjs**, which encapsulates **WebRTC**).
+
+Patient can start their consultation by clicking "details" button in the appointment record list, in the wizard, they can start their consultation by selecting Details in consultation section.
+![](https://s2.loli.net/2024/09/07/IjRBcie8aVdkhut.png)
+
+##### 📝 Text and image based consultation
+
+Patient can chat with doctor by text and image. By clicking the `upload image` button, patient can upload image to the consultation room.
+![](https://s2.loli.net/2024/09/07/X5TnUGN1LAjDmf3.png)
+This image is not stored in the database, instead, it is uploaded by the media host service powered by [smms.app](https://smms.app/).
+This is implemented by using `socked.io`.
+
+##### 🎥 Video and audio consultation
+
+This type of consultation is based on **peerjs**, which encapsulates **WebRTC**.
+![](https://s2.loli.net/2024/09/07/Gv5FrDK9pkxNJ3w.png)
+
+###### 📜 Implementation:
+
+- Each consultation has a unique room id generated by `uuid`.
+- Each user(peer onject) has a unique id generated by `uuid`(generated by `peerjs`).
+- When a user join the room, it will emit a `user-connected` event to the room, along with the `roomId` and `userId`(peer object id).
+- The backend will listen to the `user-connected` event, broadcast a "user-connected" event to all users in the room, along with `userId`(peer object id) of the user who connected.
+- When the peer get "user-connected" event, it will try call the peer by its `userId`.
+- When a user get a call, it will answer it with its video stream.
+
+###### 🛠️ Solved issues:
+
+- The issue of establishing P2P connection between two different network is solved by using `TURN` and `STUN` server provided by [Open Relay](https://www.metered.ca/tools/openrelay/).
+- The `peer` server is provided by [peerjs](https://status.peerjs.com/ib0l).
+- The communication of id for peer object is achieved by `websocket.io`.
+
+###### 📜 Detailed implementation:
+
+- Front-end implementation can be viewed [here](https://github.com/dxy-katzchen/onlineHospital/blob/main/frontend/src/pages/Consultation/WebRTCVideoChat/index.vue)
+- Back-end implementation can be viewed [here](https://github.com/dxy-katzchen/onlineHospital/blob/main/backend/utils/socket.js)
+
+#### 📋 View Medical history
+
+After consultation, patient can wait for the doctor to issue a medical record. As long as the doctor issues a medical record, patient can view it in `About me`->`Medical Record List`
+![](https://s2.loli.net/2024/09/07/TAPLWOY7MiHKfJI.png)
+or click `Appointment Record`->`Details`, in the wizard, click `Medical History`->`Details`(it is availiable now)
+![](https://s2.loli.net/2024/09/07/BvatgHhcdjonAeX.png)
+Here is the details of the medical history.
+![](https://s2.loli.net/2024/09/07/zUqwEDcoP5FVT4M.png)
+
+#### 💊 View Prescription
+
+After consultation, patient can wait for the doctor to issue a prescription. As long as the doctor issues a prescription, patient can view it in `About me`->`Prescription List`
+![](https://s2.loli.net/2024/09/07/NnzaTsBMEpLkGCZ.png)
+or click `Appointment Record`->`Details`, in the wizard, click `Prescription`->`Details`(it is availiable now)
+
+Then click `Details` button to view the prescription.
+![](https://s2.loli.net/2024/09/07/rz9FHCgjtohnNfy.png)
+
+#### 💰 Pay for consultation
+
+After the patient view the medical record and prescription, they can click `Pay` button to pay for the consultation.
+After the payment is successful, the patient can click `Export Prescription Orders` button to download the prescription.
+![](https://s2.loli.net/2024/09/07/me56OkcaAl3DQpu.png)
+It will be a .xlsx file.
+![](https://s2.loli.net/2024/09/07/5LQsGAvkgthR9Oi.png)
+
+### 👨‍⚕️ Doctor
+
+#### 📋 View Appointment List
+
+Doctor can view appoinement related to them in `About me`->`Appointment Record` page, click `Details` of a record, they can fill medical history and prescription for the patient.
+![](https://s2.loli.net/2024/09/07/NV2bRhqOwC4UG9S.png)
+
+#### 📝 Add Medical History
+
+There will be a template for medical history, doctor use markdown editor to fill medical history for the patient.
+![](https://s2.loli.net/2024/09/07/7R9DgbPjEGW6mFi.png)
+After finishing, click `Submit` button, the medical history will be added to the patient's medical history list.
+
+#### 💊 Edit Prescription
+
+Doctor can add prescription for the patient by clicking `Details` button in `appointment record` list, then click `Fill` under `Prescription` section.
+![](https://s2.loli.net/2024/09/07/ERQqWnMkltCIPKL.png)
+In the prescription editor, doctor can add multiple drugs to the prescription, including change the quantity and remove it from the prescription.
+Because there might be too many drugs, doctor can search drug by `drug name`.
+![](https://s2.loli.net/2024/09/07/YomvuT5f4cesHRg.png)
+After done, exit. The prescription will be saved automatically.
+
+### 🧑‍⚕️ Pharmacist(Admin)
+
+In the `Edit` -> `Drug Information` section, admin can add/delete drug information. They can also search drug information by `drug name`.
+![](https://s2.loli.net/2024/09/07/BcZ8dmg7vRWNoMe.png)
