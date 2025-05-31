@@ -1,10 +1,10 @@
 const mysql = require("mysql2");
 
 const db = mysql.createPool({
-  host: "xxx",
-  user: "xxx",
-  password: "xxx",
-  database: "xxx",
+  host: "127.0.0.1",
+  user: "root",
+  password: "iKuuoLRIep3zfoSU",
+  database: "online_hospital",
 });
 
 const query = (sql, ...valueArgs) =>
